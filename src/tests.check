@@ -1,0 +1,257 @@
+#include "../s21_parser.h"
+
+#test test_1
+data_t data_struct;
+data_struct.count_facets = 0;
+data_struct.count_vertex = 0;
+data_struct.indexes = 0;
+parse_file("./obj/cube.obj", &data_struct);
+unsigned int s21_res = data_struct.count_vertex;
+int res = 8;
+mem_free(&data_struct);
+ck_assert_int_eq(s21_res, res);
+
+#test test_2
+data_t data_struct;
+data_struct.count_facets = 0;
+data_struct.count_vertex = 0;
+data_struct.indexes = 0;
+parse_file("./obj/cube.obj", &data_struct);
+unsigned int s21_res = data_struct.count_facets;
+int res = 12;
+mem_free(&data_struct);
+ck_assert_int_eq(s21_res, res);
+
+#test test_3
+data_t data_struct;
+data_struct.count_facets = 0;
+data_struct.count_vertex = 0;
+data_struct.indexes = 0;
+int s21_res = parse_file("123obj", &data_struct);
+int res = 1;
+ck_assert_int_eq(s21_res, res);
+
+#test test_4
+data_t data_struct;
+data_struct.count_facets = 0;
+data_struct.count_vertex = 0;
+data_struct.indexes = 0;
+parse_file("./obj/test.obj", &data_struct);
+int *s21_array = (int*)malloc(sizeof(int) * data_struct.indexes * 2);
+make_array_index_facets(&data_struct, s21_array);
+int array[18] = {0,1,1,2,2,0,3,4,4,5,5,3,6,7,7,8,8,6};
+for (int i = 0; i < (int)data_struct.indexes * 2; i++) {
+    ck_assert_int_eq(s21_array[i], array[i]);
+}
+mem_free(&data_struct);
+free(s21_array);
+
+#test test_5
+data_t data_struct;
+data_struct.count_facets = 0;
+data_struct.count_vertex = 0;
+data_struct.indexes = 0;
+parse_file("./obj/test.obj", &data_struct);
+double *s21_array = (double*)malloc(sizeof(double) * data_struct.matrix.rows *
+                                    data_struct.matrix.columns);
+make_array_vertex(&data_struct, s21_array);
+int b = 0;
+for (int i = 0; i < data_struct.matrix.rows; i++) {
+    for (int j = 0; j < data_struct.matrix.columns; j++) {
+        ck_assert_double_eq(data_struct.matrix.matrix[i][j], s21_array[b++]); 
+    }   
+}
+mem_free(&data_struct);
+free(s21_array);
+
+#test test_6
+data_t data_struct;
+data_struct.count_facets = 0;
+data_struct.count_vertex = 0;
+data_struct.indexes = 0;
+parse_file("./obj/test.obj", &data_struct);
+double x_max = 0;
+double x_min = 0;
+double y_max = 0;
+double y_min = 0;
+find_max(&x_max,&x_min,&y_max,&y_min, &data_struct);
+ck_assert_double_eq(x_max, 7);
+ck_assert_double_eq(x_min, 0);
+ck_assert_double_eq(y_max, 8);
+ck_assert_double_eq(y_min, 0);
+mem_free(&data_struct);
+
+#test test_7
+data_t data_struct_s21;
+data_t data_struct_original;
+data_struct_s21.count_facets = 0;
+data_struct_s21.count_vertex = 0;
+data_struct_s21.indexes = 0;
+data_struct_original.count_facets = 0;
+data_struct_original.count_vertex = 0;
+data_struct_original.indexes = 0;
+parse_file("./obj/test.obj", &data_struct_s21);
+parse_file("./obj/test.obj", &data_struct_original);
+double angle = 10;
+rotation_by_ox(&data_struct_s21.matrix, angle);
+for (int i = 1; i < data_struct_original.matrix.rows; i++) {
+    double temp_y = data_struct_original.matrix.matrix[i][1];
+    double temp_z = data_struct_original.matrix.matrix[i][2];
+    data_struct_original.matrix.matrix[i][1] = cos(angle) * temp_y - sin(angle) * temp_z;
+    data_struct_original.matrix.matrix[i][2] = sin(angle) * temp_y + cos(angle) * temp_z;
+  }
+for (int i = 0; i < data_struct_original.matrix.rows; i++) {
+   for (int j = 0; j < data_struct_original.matrix.columns; j++) {
+          ck_assert_double_eq(data_struct_original.matrix.matrix[i][j], data_struct_s21.matrix.matrix[i][j]); 
+     }
+   }
+mem_free(&data_struct_s21);
+mem_free(&data_struct_original);
+
+#test test_8
+data_t data_struct_s21;
+data_t data_struct_original;
+data_struct_s21.count_facets = 0;
+data_struct_s21.count_vertex = 0;
+data_struct_s21.indexes = 0;
+data_struct_original.count_facets = 0;
+data_struct_original.count_vertex = 0;
+data_struct_original.indexes = 0;
+parse_file("./obj/test.obj", &data_struct_s21);
+parse_file("./obj/test.obj", &data_struct_original);
+double angle = 10;
+rotation_by_oy(&data_struct_s21.matrix, angle);
+for (int i = 1; i < data_struct_original.matrix.rows; i++) {
+    double temp_x = data_struct_original.matrix.matrix[i][0];
+    double temp_z = data_struct_original.matrix.matrix[i][2];
+    data_struct_original.matrix.matrix[i][0] = cos(angle) * temp_x + sin(angle) * temp_z;
+    data_struct_original.matrix.matrix[i][2] = -sin(angle) * temp_x + cos(angle) * temp_z;
+  }
+for (int i = 0; i < data_struct_original.matrix.rows; i++) {
+   for (int j = 0; j < data_struct_original.matrix.columns; j++) {
+          ck_assert_double_eq(data_struct_original.matrix.matrix[i][j], data_struct_s21.matrix.matrix[i][j]); 
+     }
+   }
+mem_free(&data_struct_s21);
+mem_free(&data_struct_original);
+
+#test test_9
+data_t data_struct_s21;
+data_t data_struct_original;
+data_struct_s21.count_facets = 0;
+data_struct_s21.count_vertex = 0;
+data_struct_s21.indexes = 0;
+data_struct_original.count_facets = 0;
+data_struct_original.count_vertex = 0;
+data_struct_original.indexes = 0;
+parse_file("./obj/test.obj", &data_struct_s21);
+parse_file("./obj/test.obj", &data_struct_original);
+double angle = 10;
+rotation_by_oz(&data_struct_s21.matrix, angle);
+for (int i = 1; i < data_struct_original.matrix.rows; i++) {
+    double temp_x = data_struct_original.matrix.matrix[i][0];
+    double temp_y = data_struct_original.matrix.matrix[i][1];
+    data_struct_original.matrix.matrix[i][0] = cos(angle) * temp_x - sin(angle) * temp_y;
+    data_struct_original.matrix.matrix[i][1] = sin(angle) * temp_x + cos(angle) * temp_y;
+  }
+for (int i = 0; i < data_struct_original.matrix.rows; i++) {
+   for (int j = 0; j < data_struct_original.matrix.columns; j++) {
+          ck_assert_double_eq(data_struct_original.matrix.matrix[i][j], data_struct_s21.matrix.matrix[i][j]); 
+     }
+   }
+mem_free(&data_struct_s21);
+mem_free(&data_struct_original);
+
+#test test_10
+data_t data_struct_s21;
+data_t data_struct_original;
+data_struct_s21.count_facets = 0;
+data_struct_s21.count_vertex = 0;
+data_struct_s21.indexes = 0;
+data_struct_original.count_facets = 0;
+data_struct_original.count_vertex = 0;
+data_struct_original.indexes = 0;
+parse_file("./obj/test.obj", &data_struct_s21);
+parse_file("./obj/test.obj", &data_struct_original);
+double a = 10;
+move_x(&data_struct_s21.matrix, a);
+for (int i = 1; i < data_struct_original.matrix.rows; i++) {
+    data_struct_original.matrix.matrix[i][0] += a;
+  }
+for (int i = 0; i < data_struct_original.matrix.rows; i++) {
+    ck_assert_double_eq(data_struct_original.matrix.matrix[i][0], data_struct_s21.matrix.matrix[i][0]); 
+     }
+mem_free(&data_struct_s21);
+mem_free(&data_struct_original);
+
+#test test_11
+data_t data_struct_s21;
+data_t data_struct_original;
+data_struct_s21.count_facets = 0;
+data_struct_s21.count_vertex = 0;
+data_struct_s21.indexes = 0;
+data_struct_original.count_facets = 0;
+data_struct_original.count_vertex = 0;
+data_struct_original.indexes = 0;
+parse_file("./obj/test.obj", &data_struct_s21);
+parse_file("./obj/test.obj", &data_struct_original);
+double a = 10;
+move_y(&data_struct_s21.matrix, a);
+for (int i = 1; i < data_struct_original.matrix.rows; i++) {
+    data_struct_original.matrix.matrix[i][1] += a;
+  }
+for (int i = 0; i < data_struct_original.matrix.rows; i++) {
+    ck_assert_double_eq(data_struct_original.matrix.matrix[i][1], data_struct_s21.matrix.matrix[i][1]); 
+     }
+mem_free(&data_struct_s21);
+mem_free(&data_struct_original);
+
+#test test_12
+data_t data_struct_s21;
+data_t data_struct_original;
+data_struct_s21.count_facets = 0;
+data_struct_s21.count_vertex = 0;
+data_struct_s21.indexes = 0;
+data_struct_original.count_facets = 0;
+data_struct_original.count_vertex = 0;
+data_struct_original.indexes = 0;
+parse_file("./obj/test.obj", &data_struct_s21);
+parse_file("./obj/test.obj", &data_struct_original);
+double a = 10;
+move_z(&data_struct_s21.matrix, a);
+for (int i = 1; i < data_struct_original.matrix.rows; i++) {
+    data_struct_original.matrix.matrix[i][2] += a;
+  }
+for (int i = 0; i < data_struct_original.matrix.rows; i++) {
+    ck_assert_double_eq(data_struct_original.matrix.matrix[i][2], data_struct_s21.matrix.matrix[i][2]); 
+     }
+mem_free(&data_struct_s21);
+mem_free(&data_struct_original);
+
+#test test_13
+data_t data_struct_s21;
+data_t data_struct_original;
+data_struct_s21.count_facets = 0;
+data_struct_s21.count_vertex = 0;
+data_struct_s21.indexes = 0;
+data_struct_original.count_facets = 0;
+data_struct_original.count_vertex = 0;
+data_struct_original.indexes = 0;
+parse_file("./obj/test.obj", &data_struct_s21);
+parse_file("./obj/test.obj", &data_struct_original);
+double zoom_k = 5;
+zoom_function(&data_struct_s21.matrix, zoom_k);
+    for (int i = 1; i < data_struct_original.matrix.rows; i++) {
+      for (int j = 0; j < 3; j++) {
+        data_struct_original.matrix.matrix[i][j] *= zoom_k;
+      }
+    }
+for (int i = 1; i < data_struct_original.matrix.rows; i++) {
+    for (int j = 0; j < 3; j++) {
+    ck_assert_double_eq(data_struct_original.matrix.matrix[i][j], data_struct_s21.matrix.matrix[i][j]); 
+     }
+}
+mem_free(&data_struct_s21);
+mem_free(&data_struct_original);
+
+
